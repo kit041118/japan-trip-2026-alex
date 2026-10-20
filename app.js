@@ -530,6 +530,84 @@ function bindSearch() {
   }
 }
 
+
+function parseNotes(notesArr) {
+  const FACT_LABELS = [
+    "上車地點",
+    "建議抵達",
+    "建議離開",
+    "建議乘船",
+    "建議入場",
+    "建議早餐",
+    "建議開始",
+    "最遲入場",
+    "出發",
+    "到達",
+    "車程",
+    "車費",
+    "最遲",
+  ];
+  const facts = [];
+  const rest = [];
+  const lines = [];
+  (notesArr || []).forEach((n) => {
+    String(n)
+      .split(/\n/)
+      .forEach((line) => {
+        const t = line.trim();
+        if (t) lines.push(t);
+      });
+  });
+
+  for (const line of lines) {
+    let matched = false;
+    for (const prefix of FACT_LABELS) {
+      if (!line.startsWith(prefix)) continue;
+      const colonIdx = line.search(/[：:]/);
+      if (colonIdx < prefix.length) continue;
+      const label = line.slice(0, colonIdx).trim();
+      const value = line.slice(colonIdx + 1).trim();
+      if (!value) continue;
+      let kind = "default";
+      if (prefix === "車費") {
+        if (/周遊券已含/.test(value)) kind = "pass";
+        else if (/[¥￥]\s*[\d,]+|[\d,]+\s*円|約\s*[¥￥]?\s*[\d,]+/.test(value)) kind = "fare";
+      }
+      facts.push({ label, value, kind });
+      matched = true;
+      break;
+    }
+    if (!matched) rest.push(line);
+  }
+  return { facts, rest };
+}
+
+function renderNotesHtml(notesArr) {
+  const { facts, rest } = parseNotes(notesArr);
+  let html = "";
+  if (facts.length) {
+    html += `<div class="tl-facts">${facts
+      .map((f) => {
+        const kindClass =
+          f.kind === "pass" ? " is-pass" : f.kind === "fare" ? " is-fare" : "";
+        const valueHtml =
+          f.kind === "pass"
+            ? `<span class="tl-fact-badge">${escapeHtml(f.value)}</span>`
+            : escapeHtml(f.value);
+        return `<div class="tl-fact${kindClass}"><span class="tl-fact-label">${escapeHtml(
+          f.label
+        )}</span><span class="tl-fact-value">${valueHtml}</span></div>`;
+      })
+      .join("")}</div>`;
+  }
+  if (rest.length) {
+    html += `<div class="tl-notes">${rest
+      .map((line) => `<div class="tl-note-line">${escapeHtml(line)}</div>`)
+      .join("")}</div>`;
+  }
+  return html;
+}
+
 function renderItinerary() {
   const day = TRIP_DATA.days[currentDay];
   if (!day) return;
@@ -548,7 +626,9 @@ function renderItinerary() {
     .map((item, idx) => {
       const cat = CAT[categorize(item.title, item.time)] || CAT.other;
       const timeInfo = formatTime(item.time);
-      const notes = (item.notes || []).filter((n) => n && String(n).trim()).join("\n");
+      const notesRaw = (item.notes || []).filter((n) => n && String(n).trim());
+      const notesText = notesRaw.join("\n");
+      const notesHtml = renderNotesHtml(notesRaw);
       const places = itemPlaces(item);
       const links = item.links || [];
 
@@ -574,7 +654,7 @@ function renderItinerary() {
           ? `<a class="tl-title tl-title-link" href="${escapeHtml(places[0].url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || "（未命名）")} <span class="map-chip">地圖</span></a>`
           : `<div class="tl-title">${escapeHtml(item.title || "（未命名）")}</div>`;
 
-      const searchBlob = [item.title, notes, item.time, ...places.map((p) => p.name)]
+      const searchBlob = [item.title, notesText, item.time, ...places.map((p) => p.name)]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -585,7 +665,7 @@ function renderItinerary() {
         <div class="tl-card">
           ${timeHtml}
           ${titleHtml}
-          ${notes ? `<div class="tl-notes">${escapeHtml(notes)}</div>` : ""}
+          ${notesHtml}
           ${actions}
         </div>
       </article>`;

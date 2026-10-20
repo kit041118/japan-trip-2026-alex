@@ -621,7 +621,7 @@ button {
 .tl-card {
   background: var(--bg-elevated);
   border-radius: var(--radius);
-  padding: 16px 18px;
+  padding: 18px 20px;
   box-shadow: var(--card-shadow);
   border: 1px solid transparent;
   transition: all 0.2s ease;
@@ -642,7 +642,7 @@ button {
   background: var(--sakura-soft);
   padding: 3px 10px;
   border-radius: 999px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .tl-time.warn {
@@ -654,25 +654,112 @@ button {
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.4;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   word-break: break-word;
 }
 
-.tl-notes {
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-  white-space: pre-line;
-  margin-bottom: 10px;
+.tl-facts {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--sky-soft);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(197, 217, 232, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tl-fact {
+  display: grid;
+  grid-template-columns: minmax(4.5em, 7.2em) 1fr;
+  gap: 8px 12px;
+  align-items: start;
+  font-size: 0.86rem;
   line-height: 1.55;
 }
 
+.tl-fact-label {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  padding-top: 2px;
+  line-height: 1.35;
+}
+
+.tl-fact-value {
+  color: var(--ink);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.tl-fact.is-pass .tl-fact-value {
+  color: var(--matcha);
+}
+
+.tl-fact.is-fare .tl-fact-value {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.tl-fact-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--matcha-soft);
+  color: var(--matcha);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid rgba(122, 158, 126, 0.28);
+}
+
+.tl-fact.is-pass .tl-fact-badge {
+  background: linear-gradient(135deg, var(--matcha-soft), var(--sakura-soft));
+  color: #5f8a64;
+  border-color: rgba(212, 132, 154, 0.25);
+}
+
+.tl-notes {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .tl-notes:empty { display: none; margin: 0; }
+
+.tl-note-line {
+  font-size: 0.86rem;
+  color: var(--ink-muted);
+  line-height: 1.7;
+  padding: 8px 12px;
+  background: rgba(232, 228, 220, 0.35);
+  border-radius: 10px;
+  border-left: 3px solid var(--mist);
+  word-break: break-word;
+}
 
 .tl-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 14px;
+}
+
+@media (max-width: 480px) {
+  .tl-fact {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .tl-fact-label {
+    padding-top: 0;
+  }
+
+  .tl-facts {
+    padding: 12px;
+  }
 }
 
 .btn {
