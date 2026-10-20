@@ -373,12 +373,48 @@ button {
   flex-direction: column;
 }
 
+.pass-image-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: var(--mist);
+  position: relative;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.pass-image-btn:focus-visible {
+  outline: 3px solid var(--sakura-deep);
+  outline-offset: -3px;
+}
+
 .pass-card img {
   width: 100%;
-  max-height: 180px;
+  max-height: 220px;
   object-fit: cover;
   object-position: top;
   background: var(--mist);
+  transition: transform 0.25s ease;
+}
+
+.pass-image-btn:hover img,
+.pass-image-btn:active img {
+  transform: scale(1.03);
+}
+
+.pass-zoom-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  background: rgba(44, 42, 40, 0.72);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  pointer-events: none;
+  letter-spacing: 0.02em;
 }
 
 .pass-body {
@@ -696,13 +732,17 @@ button {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(44, 42, 40, 0.85);
+  background: rgba(44, 42, 40, 0.9);
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 48px 12px 24px;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.2s ease;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y pinch-zoom;
 }
 
 .lightbox.open { display: flex; }
@@ -713,11 +753,14 @@ button {
 }
 
 .lightbox img {
-  max-width: min(960px, 100%);
-  max-height: 90vh;
+  width: auto;
+  height: auto;
+  max-width: min(1200px, 100%);
+  max-height: none;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   object-fit: contain;
+  touch-action: pinch-zoom;
 }
 
 .lightbox-close {
