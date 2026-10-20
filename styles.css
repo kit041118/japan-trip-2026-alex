@@ -1046,3 +1046,208 @@ button {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+
+/* —— 行程助手 —— */
+.assistant-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--mist);
+  padding: 16px;
+  margin: 8px 0 22px;
+}
+.assistant-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 6px;
+}
+.assistant-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.assistant-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--sakura-deep);
+  background: var(--sakura-soft);
+  border: 1px solid var(--sakura);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.assistant-desc {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.assistant-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.assistant-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--sky-soft);
+  color: var(--sky-deep);
+  border: 1px solid var(--sky);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+  transition: background 0.15s, transform 0.1s;
+}
+.assistant-chip:hover {
+  background: var(--sky);
+  color: var(--ink);
+}
+.assistant-chip:active { transform: scale(0.98); }
+.assistant-thread {
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px 8px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.assistant-bubble {
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  max-width: 100%;
+}
+.assistant-bubble p { margin: 0 0 8px; }
+.assistant-bubble p:last-child { margin-bottom: 0; }
+.assistant-bubble.bot {
+  background: var(--sakura-soft);
+  border: 1px solid var(--sakura);
+  align-self: stretch;
+}
+.assistant-bubble.user {
+  background: var(--sky-soft);
+  border: 1px solid var(--sky);
+  align-self: flex-end;
+  max-width: 92%;
+}
+.assistant-bubble-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.assistant-bubble.user .assistant-bubble-label { color: var(--sky-deep); }
+.assistant-bubble.bot .assistant-bubble-label { color: var(--sakura-deep); }
+.assistant-form {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.assistant-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--mist);
+  border-radius: 999px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+.assistant-form input:focus {
+  border-color: var(--sakura-deep);
+  box-shadow: 0 0 0 3px rgba(243, 198, 208, 0.45);
+}
+.assistant-send {
+  flex-shrink: 0;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--sakura-deep), #c06b88);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  box-shadow: 0 2px 8px rgba(212, 132, 154, 0.35);
+}
+.assistant-send:active { opacity: 0.9; }
+.assistant-item {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--mist);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+.assistant-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.assistant-item-time {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sky-deep);
+  background: var(--sky-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.assistant-item-time.warn {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+.assistant-item-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.assistant-notes {
+  margin: 6px 0 0 1.1em;
+  padding: 0;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  white-space: pre-wrap;
+}
+.assistant-notes li { margin-bottom: 4px; }
+.assistant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.assistant-day-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sakura-deep);
+  margin: 10px 0 2px;
+}
+.assistant-tip {
+  font-size: 0.8rem;
+  color: var(--matcha);
+  margin-top: 4px !important;
+}
+.assistant-pass-note {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  margin: 4px 0 0 !important;
+}
+.assistant-divider {
+  margin-top: 12px !important;
+  font-weight: 700;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+@media (max-width: 480px) {
+  .assistant-card { padding: 14px 12px; }
+  .assistant-thread { max-height: 48vh; }
+  .assistant-chip { font-size: 0.74rem; padding: 7px 10px; }
+}
