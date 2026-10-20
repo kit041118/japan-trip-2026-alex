@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#faf7f2" />
   <meta name="description" content="日本之旅 2026 — 箱根・河口湖・東京行程指南" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="日本之旅" />
   <title>日本之旅｜2026.11.28–12.05</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -19,6 +21,8 @@
         </div>
       </div>
       <nav class="nav-tabs" aria-label="主要導覽">
+        <button type="button" class="nav-tab" data-view="foliage">紅葉</button>
+        <button type="button" class="nav-tab" data-view="lights">燈飾</button>
         <button type="button" class="nav-tab active" data-view="home">總覽</button>
         <button type="button" class="nav-tab" data-view="itinerary">行程</button>
         <button type="button" class="nav-tab" data-view="passes">周遊券</button>
@@ -27,10 +31,10 @@
   </header>
 
   <main class="main">
-    <!-- 首頁總覽 -->
+    <section id="view-foliage" class="view" aria-label="紅葉"></section>
+    <section id="view-lights" class="view" aria-label="東京燈飾"></section>
     <section id="view-home" class="view active" aria-label="行程總覽"></section>
 
-    <!-- 按日行程 -->
     <section id="view-itinerary" class="view" aria-label="每日行程">
       <div class="itinerary-toolbar">
         <div class="day-scroller" id="day-scroller" role="tablist" aria-label="選擇日子"></div>
@@ -39,16 +43,12 @@
             <span aria-hidden="true">🔍</span>
             <input id="search-input" type="search" placeholder="搜尋景點、餐廳…" autocomplete="off" />
           </div>
-          <button type="button" class="filter-btn" id="filter-maps" aria-pressed="false" title="只顯示有地圖的項目">
-            🗺️ 有地圖
-          </button>
         </div>
       </div>
       <div class="day-header" id="day-header"></div>
       <div class="timeline" id="timeline"></div>
     </section>
 
-    <!-- 周遊券 -->
     <section id="view-passes" class="view" aria-label="周遊券"></section>
   </main>
 
@@ -56,7 +56,6 @@
     離線可用 · 景點可開啟 Google 地圖 · 資料來自行程表
   </footer>
 
-  <!-- Lightbox -->
   <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="圖片預覽">
     <button type="button" class="lightbox-close" id="lightbox-close" aria-label="關閉">×</button>
     <img id="lightbox-img" alt="放大預覽" />

@@ -818,3 +818,192 @@ button {
     -webkit-mask-image: none;
   }
 }
+
+/* —— 地圖地點按鈕 —— */
+.btn-place {
+  background: linear-gradient(135deg, var(--sakura-deep), #c46b84);
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(212, 132, 154, 0.3);
+}
+.btn-place:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 132, 154, 0.45);
+}
+
+.tl-title-link {
+  display: inline;
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.tl-title-link:hover { color: var(--sakura-deep) !important; }
+.map-chip {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--sakura-deep);
+  background: var(--sakura-soft);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* —— 天氣小卡 —— */
+.weather-loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  border: 1px dashed var(--mist);
+  margin-bottom: 8px;
+}
+.weather-fallback {
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--sky-soft);
+  border-radius: var(--radius);
+  color: var(--ink);
+  margin: 8px 0 20px;
+  border: 1px solid var(--sky);
+}
+.weather-fallback-sub {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+}
+.weather-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.weather-card {
+  background: var(--bg-elevated);
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--mist);
+}
+.weather-date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sakura-deep);
+}
+.weather-region {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  margin: 2px 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.weather-emoji { font-size: 1.6rem; line-height: 1.2; }
+.weather-label {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  margin: 2px 0 4px;
+}
+.weather-temp {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.weather-temp .tmax { color: var(--ink); }
+.weather-temp .tsep { color: var(--ink-faint); margin: 0 2px; }
+.weather-temp .tmin { color: var(--sky-deep); }
+.weather-note {
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  margin-bottom: 20px;
+}
+
+/* —— 紅葉／燈飾卡片 —— */
+.spot-grid {
+  display: grid;
+  gap: 14px;
+}
+.spot-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 18px 18px 16px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--mist);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.spot-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+.spot-card.foliage { border-left: 4px solid #c45c5c; }
+.spot-card.lights { border-left: 4px solid #d4a84b; }
+.spot-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  background: var(--amber-soft);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.spot-card.foliage .spot-badge { background: #fde8e8; color: #a94442; }
+.spot-card.lights .spot-badge { background: #fff6e0; color: #9a7b2f; }
+.spot-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.spot-note {
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+.spot-tip {
+  font-size: 0.82rem;
+  color: var(--matcha);
+  background: var(--matcha-soft);
+  padding: 8px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.spot-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.spot-meta-row .chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--sky-soft);
+  color: var(--sky-deep);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.spot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 導覽：更多分頁時可橫向捲動 */
+.nav-tabs {
+  overflow-x: auto;
+  max-width: min(100%, 420px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab { white-space: nowrap; flex-shrink: 0; }
+
+@media (max-width: 480px) {
+  .header-inner { flex-wrap: wrap; }
+  .nav-tabs { max-width: 100%; width: 100%; order: 3; }
+  .weather-grid { grid-template-columns: repeat(4, 1fr); }
+  .weather-card { padding: 10px 6px; }
+}
