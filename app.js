@@ -228,7 +228,10 @@ function renderPasses() {
         );
       }
       const img = p.image
-        ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" />`
+        ? `<button type="button" class="pass-image-btn" data-src="${escapeHtml(p.image)}" aria-label="放大查看 ${escapeHtml(p.name)}">
+            <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy" />
+            <span class="pass-zoom-hint">點擊放大</span>
+          </button>`
         : "";
       return `
       <article class="pass-card">
@@ -245,10 +248,14 @@ function renderPasses() {
   el.innerHTML = `
     <div class="hero-card" style="margin-bottom:16px">
       <h2>周遊券</h2>
-      <p class="hero-sub">箱根與河口湖周遊券資訊、購買連結與地圖</p>
+      <p class="hero-sub">箱根與河口湖周遊券資訊、購買連結與地圖 · 點圖片可放大</p>
     </div>
     <div class="pass-grid">${cards}</div>
   `;
+
+  el.querySelectorAll(".pass-image-btn").forEach((btn) => {
+    btn.addEventListener("click", () => openLightbox(btn.dataset.src));
+  });
 }
 
 function renderDayPills() {
@@ -417,8 +424,11 @@ function openLightbox(src) {
   const lb = document.getElementById("lightbox");
   const img = document.getElementById("lightbox-img");
   img.src = src;
+  img.style.transform = "";
   lb.classList.add("open");
   document.body.style.overflow = "hidden";
+  // 手機上讓圖片可捲動／縮放檢視
+  lb.scrollTop = 0;
 }
 
 function closeLightbox() {
