@@ -172,6 +172,13 @@ function weatherEmoji(code) {
   return w;
 }
 
+async function fetchWeatherJson(url) {
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.reason || ("weather http " + res.status));
+  return data;
+}
+
 async function loadWeather() {
   const slot = document.getElementById("weather-slot");
   if (!slot) return;
@@ -182,7 +189,7 @@ async function loadWeather() {
     if (cached) {
       const parsed = JSON.parse(cached);
       if (parsed.day === todayKey && parsed.cards) {
-        renderWeatherCards(slot, parsed.cards);
+        renderWeatherCards(slot, parsed.cards, parsed.mode || "forecast");
         return;
       }
     }
@@ -191,7 +198,6 @@ async function loadWeather() {
   slot.innerHTML = `<div class="weather-loading">天氣載入中…</div>`;
 
   const regions = TRIP_DATA.weather_regions || [];
-  // Group unique lat/lon
   const unique = [];
   const keyToIdx = {};
   regions.forEach((r) => {
@@ -202,48 +208,77 @@ async function loadWeather() {
     }
   });
 
-  try {
+  const dailyParams = "daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo";
+
+  async function loadFrom(base, start, end, dateMapFn) {
     const results = await Promise.all(
       unique.map(({ lat, lon }) =>
-        fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo&start_date=2026-11-28&end_date=2026-12-05`
-        ).then((res) => {
-          if (!res.ok) throw new Error("weather http " + res.status);
-          return res.json();
-        })
+        fetchWeatherJson(
+          `${base}?latitude=${lat}&longitude=${lon}&${dailyParams}&start_date=${start}&end_date=${end}`
+        )
       )
     );
+    return regions
+      .map((r) => {
+        const idx = keyToIdx[`${r.lat},${r.lon}`];
+        const data = results[idx];
+        const lookDate = dateMapFn(r.date);
+        const di = data.daily.time.indexOf(lookDate);
+        if (di < 0) return null;
+        const code = data.daily.weathercode[di];
+        const [emoji, label] = weatherEmoji(code);
+        return {
+          date: r.date,
+          region: r.region,
+          emoji,
+          label,
+          tmax: Math.round(data.daily.temperature_2m_max[di]),
+          tmin: Math.round(data.daily.temperature_2m_min[di]),
+        };
+      })
+      .filter(Boolean);
+  }
 
-    const cards = regions.map((r) => {
-      const idx = keyToIdx[`${r.lat},${r.lon}`];
-      const data = results[idx];
-      const dates = data.daily.time;
-      const di = dates.indexOf(r.date);
-      if (di < 0) return null;
-      const code = data.daily.weathercode[di];
-      const [emoji, label] = weatherEmoji(code);
-      return {
-        date: r.date,
-        region: r.region,
-        emoji,
-        label,
-        tmax: Math.round(data.daily.temperature_2m_max[di]),
-        tmin: Math.round(data.daily.temperature_2m_min[di]),
-      };
-    }).filter(Boolean);
+  try {
+    let cards = null;
+    let mode = "forecast";
+    try {
+      cards = await loadFrom(
+        "https://api.open-meteo.com/v1/forecast",
+        "2026-11-28",
+        "2026-12-05",
+        (d) => d
+      );
+      if (!cards.length) throw new Error("empty forecast");
+    } catch (_) {
+      // 出發前超過約 16 日時，預報尚不可用 → 改用往年同期
+      cards = await loadFrom(
+        "https://archive-api.open-meteo.com/v1/archive",
+        "2025-11-28",
+        "2025-12-05",
+        (d) => d.replace("2026-", "2025-")
+      );
+      mode = "archive";
+      if (!cards.length) throw new Error("empty archive");
+    }
 
     try {
-      sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ day: todayKey, cards }));
+      sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ day: todayKey, cards, mode }));
     } catch (_) {}
-    renderWeatherCards(slot, cards);
+    renderWeatherCards(slot, cards, mode);
   } catch (err) {
-    slot.innerHTML = `<div class="weather-fallback">☁️ 天氣需連網更新<br><span class="weather-fallback-sub">連上網路後重新整理即可顯示預報</span></div>`;
+    slot.innerHTML = `<div class="weather-fallback">☁️ 天氣需連網更新<br><span class="weather-fallback-sub">連上網路後重新整理即可顯示</span></div>`;
   }
 }
 
-function renderWeatherCards(slot, cards) {
+function renderWeatherCards(slot, cards, mode) {
+  const badge = mode === "archive" ? "往年同期參考" : "預報";
+  const note =
+    mode === "archive"
+      ? "距離出發尚遠，暫顯示 2025 年同期實況作參考；出發前約兩週內會自動改為正式預報。"
+      : "預報會隨時間更新；出發前請再確認一次。";
   slot.innerHTML = `
-    <h3 class="section-title">天氣小卡 <span class="badge">Open-Meteo</span></h3>
+    <h3 class="section-title">天氣小卡 <span class="badge">${badge}</span></h3>
     <div class="weather-grid">
       ${cards
         .map(
@@ -258,7 +293,7 @@ function renderWeatherCards(slot, cards) {
         )
         .join("")}
     </div>
-    <p class="weather-note">預報會隨時間更新；出發前請再確認一次。</p>
+    <p class="weather-note">${note}</p>
   `;
 }
 
