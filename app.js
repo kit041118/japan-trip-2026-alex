@@ -302,6 +302,7 @@ function fujiCardHtml() {
   const f = TRIP_DATA.fuji_visibility;
   if (!f) return "";
   return `
+    <h3 class="section-title">富士山能見度 <span class="badge">參考來源</span></h3>
     <article class="fuji-card spot-card">
       <div class="spot-badge">🗻 查詢入口・非即時分數</div>
       <h3>${escapeHtml(f.title || "富士山能見度")}</h3>
