@@ -1236,6 +1236,14 @@ button {
   color: #1d4ed8;
   border-color: #bfdbfe;
 }
+.spot-tag-hours {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+  font-weight: 800;
+  max-width: 100%;
+  white-space: normal;
+}
 
 .spot-card h3 {
   font-size: 1.05rem;
