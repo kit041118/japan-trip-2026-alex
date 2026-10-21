@@ -687,6 +687,7 @@ function initSpotMap(viewId, listKey, spots) {
   if (!mapEl) return;
 
   if (spotMaps[viewId] && spotMaps[viewId].map) {
+    clearSpotMapGps(viewId);
     spotMaps[viewId].map.remove();
     delete spotMaps[viewId];
   }
@@ -719,9 +720,124 @@ function initSpotMap(viewId, listKey, spots) {
     markersByName[s.name] = marker;
   });
 
-  spotMaps[viewId] = { map, layer, markersByName, listKey, spots: withCoords, bounds: null };
+  spotMaps[viewId] = {
+    map,
+    layer,
+    markersByName,
+    listKey,
+    spots: withCoords,
+    bounds: null,
+    gpsLayer: L.layerGroup().addTo(map),
+    gpsWatchId: null,
+  };
+  addSpotMapLocateControl(viewId, map);
   updateSpotMapFilters(viewId);
   setTimeout(() => map.invalidateSize(), 80);
+}
+
+function clearSpotMapGps(viewId) {
+  const state = spotMaps[viewId];
+  if (!state) return;
+  if (state.gpsWatchId != null && navigator.geolocation) {
+    try {
+      navigator.geolocation.clearWatch(state.gpsWatchId);
+    } catch (_) {}
+    state.gpsWatchId = null;
+  }
+  if (state.gpsLayer) state.gpsLayer.clearLayers();
+}
+
+function showSpotMapGps(viewId, lat, lng, accuracy) {
+  const state = spotMaps[viewId];
+  if (!state || !state.map || !state.gpsLayer) return;
+  state.gpsLayer.clearLayers();
+  const latlng = L.latLng(lat, lng);
+  const acc = typeof accuracy === "number" && accuracy > 0 ? Math.min(accuracy, 200) : 40;
+  L.circle(latlng, {
+    radius: acc,
+    color: "#1a73e8",
+    weight: 1,
+    fillColor: "#1a73e8",
+    fillOpacity: 0.15,
+  }).addTo(state.gpsLayer);
+  L.circleMarker(latlng, {
+    radius: 8,
+    color: "#fff",
+    weight: 2,
+    fillColor: "#1a73e8",
+    fillOpacity: 1,
+  })
+    .bindPopup("你的目前位置")
+    .addTo(state.gpsLayer);
+  if (state.bounds && state.bounds.isValid()) {
+    const b = L.latLngBounds(state.bounds);
+    b.extend(latlng);
+    state.map.fitBounds(b, { padding: [36, 36], maxZoom: 16 });
+  } else {
+    state.map.setView(latlng, 15);
+  }
+}
+
+function locateUserOnSpotMap(viewId) {
+  const state = spotMaps[viewId];
+  if (!state || !state.map) return;
+  const btn = document.querySelector(`.spot-map-locate[data-view="${viewId}"]`);
+  if (!navigator.geolocation) {
+    alert("此裝置或瀏覽器不支援定位。");
+    return;
+  }
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add("is-loading");
+    btn.setAttribute("aria-busy", "true");
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      showSpotMapGps(viewId, pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove("is-loading");
+        btn.removeAttribute("aria-busy");
+        btn.classList.add("is-active");
+      }
+    },
+    (err) => {
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove("is-loading");
+        btn.removeAttribute("aria-busy");
+      }
+      let msg = "無法取得目前位置。";
+      if (err && err.code === 1) msg = "請允許此網站使用位置權限，才能顯示 GPS。";
+      else if (err && err.code === 2) msg = "暫時無法取得位置，請稍後再試。";
+      else if (err && err.code === 3) msg = "定位逾時，請移到較空曠處再試。";
+      alert(msg);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+  );
+}
+
+function addSpotMapLocateControl(viewId, map) {
+  const Locate = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "leaflet-bar spot-map-locate-wrap");
+      const btn = L.DomUtil.create("a", "spot-map-locate", container);
+      btn.href = "#";
+      btn.dataset.view = viewId;
+      btn.title = "顯示目前位置（GPS）";
+      btn.setAttribute("role", "button");
+      btn.setAttribute("aria-label", "顯示目前位置");
+      btn.innerHTML = "◎";
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(btn, "click", (e) => {
+        L.DomEvent.preventDefault(e);
+        locateUserOnSpotMap(viewId);
+      });
+      return container;
+    },
+  });
+  map.addControl(new Locate());
 }
 
 function updateSpotMapFilters(viewId) {
@@ -812,7 +928,7 @@ function renderSpotList(viewId, listKey, cardClass, heroTitle, defaultBadge) {
     </div>
     <div class="spot-map-wrap">
       <div class="spot-map" id="${viewId}-map" role="img" aria-label="${mapLabel}"></div>
-      <p class="spot-map-hint">只顯示本分頁清單內的店舖（不會混入其他種類）</p>
+      <p class="spot-map-hint">只顯示本分頁清單內的店舖（不會混入其他種類）。右上角 ◎ 可開 GPS 顯示你的位置（需允許位置權限）。</p>
     </div>
     <div class="spot-filters-sticky">
       <div class="filter-label">地區</div>

@@ -1394,3 +1394,24 @@ button {
 @media (max-width: 560px) {
   .spot-map { height: 220px; }
 }
+
+
+.spot-map-locate-wrap a.spot-map-locate {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a73e8;
+  background: #fff;
+  text-decoration: none;
+}
+.spot-map-locate-wrap a.spot-map-locate.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+.spot-map-locate-wrap a.spot-map-locate.is-active {
+  color: #0b57d0;
+  background: #e8f0fe;
+}
