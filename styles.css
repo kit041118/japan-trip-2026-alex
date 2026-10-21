@@ -1080,6 +1080,9 @@ button {
 }
 .spot-card.foliage { border-left: 4px solid #c45c5c; }
 .spot-card.lights { border-left: 4px solid #d4a84b; }
+.spot-card.beauty { border-left: 4px solid #d46a8a; }
+.spot-card.food { border-left: 4px solid #e07a3d; }
+.spot-card.shop { border-left: 4px solid #3a9a9a; }
 .spot-badge {
   display: inline-block;
   font-size: 0.75rem;
@@ -1092,6 +1095,9 @@ button {
 }
 .spot-card.foliage .spot-badge { background: #fde8e8; color: #a94442; }
 .spot-card.lights .spot-badge { background: #fff6e0; color: #9a7b2f; }
+.spot-card.beauty .spot-badge { background: #fce4ec; color: #ad1457; }
+.spot-card.food .spot-badge { background: #fff0e6; color: #c45c1a; }
+.spot-card.shop .spot-badge { background: #e0f2f1; color: #00695c; }
 .spot-card h3 {
   font-size: 1.05rem;
   font-weight: 700;
