@@ -1159,6 +1159,12 @@ button {
   gap: 12px;
   align-items: stretch;
 }
+
+/* 篩選隱藏：必須蓋過 .has-media 的 display:flex，否則卡片藏不掉 */
+.spot-card[hidden],
+.region-section[hidden] {
+  display: none !important;
+}
 .spot-body {
   flex: 1;
   min-width: 0;

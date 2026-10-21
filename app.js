@@ -672,7 +672,7 @@ function countByType(spots, listKey) {
 }
 
 function applySpotFilters(el) {
-  const regionBtn = el.querySelector(".region-filter .region-chip.is-active");
+  const regionBtn = el.querySelector(".region-filter:not(.type-filter) .region-chip.is-active");
   const typeBtn = el.querySelector(".type-filter .region-chip.is-active");
   const regionVal = regionBtn ? regionBtn.dataset.regionFilter : "__all__";
   const typeVal = typeBtn ? typeBtn.dataset.typeFilter : "__all__";
@@ -704,7 +704,7 @@ function bindSpotFilterRow(el, viewId, rowSelector, dataAttr) {
     filter.querySelectorAll(".region-chip").forEach((b) => b.classList.remove("is-active"));
     btn.classList.add("is-active");
     applySpotFilters(el);
-    const regionBtn = el.querySelector(".region-filter .region-chip.is-active");
+    const regionBtn = el.querySelector(".region-filter:not(.type-filter) .region-chip.is-active");
     const regionVal = regionBtn ? regionBtn.dataset.regionFilter : "__all__";
     if (dataAttr === "regionFilter" && regionVal !== "__all__") {
       const sec = el.querySelector(`.region-section[data-region="${CSS.escape(regionVal)}"]`);
