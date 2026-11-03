@@ -1292,14 +1292,12 @@ button {
   gap: 8px;
 }
 
-/* 導覽：更多分頁時可橫向捲動 */
+/* 導覽：換行顯示全部標籤，避免窄螢幕裁切「付費票券」 */
 .nav-tabs {
-  overflow-x: auto;
-  max-width: min(100%, 420px);
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  flex-wrap: wrap;
+  max-width: 100%;
+  overflow: visible;
 }
-.nav-tabs::-webkit-scrollbar { display: none; }
 .nav-tab { white-space: nowrap; flex-shrink: 0; }
 
 @media (max-width: 480px) {
