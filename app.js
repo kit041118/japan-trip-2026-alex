@@ -405,7 +405,7 @@ function renderHome() {
       <div class="stat-row">
         <div class="stat"><div class="num">${days.length}</div><div class="label">天行程</div></div>
         <div class="stat"><div class="num">${(trip.flights || []).length}</div><div class="label">航班</div></div>
-        <div class="stat"><div class="num">${Object.keys(TRIP_DATA.passes || {}).length}</div><div class="label">周遊券</div></div>
+        <div class="stat"><div class="num">${Object.keys(TRIP_DATA.passes || {}).length}</div><div class="label">付費票券</div></div>
       </div>
       <div class="flight-list">${flightsHtml}</div>
     </div>
@@ -1043,8 +1043,8 @@ function renderPasses() {
 
   el.innerHTML = `
     <div class="hero-card" style="margin-bottom:16px">
-      <h2>周遊券</h2>
-      <p class="hero-sub">箱根與河口湖周遊券資訊、購買連結與地圖 · 點圖片可放大</p>
+      <h2>付費票券</h2>
+      <p class="hero-sub">箱根周遊券與河口湖周遊券、購買連結與地圖 · 點圖片可放大</p>
     </div>
     <div class="pass-grid">${cards}</div>
   `;
