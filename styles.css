@@ -442,6 +442,110 @@ button {
   gap: 8px;
 }
 
+.pass-booking .pass-body p { flex: 0; }
+
+@media (min-width: 640px) {
+  .pass-card.pass-booking { grid-column: 1 / -1; }
+}
+
+.pass-booking-id {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--sakura-soft);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.pass-booking-id .label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sakura-deep);
+}
+
+.pass-booking-id .num {
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.pass-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.pass-fact {
+  display: grid;
+  grid-template-columns: 4.75rem 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.pass-fact dt {
+  margin: 0;
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+.pass-fact dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pass-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pass-line-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2f9e44;
+  flex-shrink: 0;
+}
+
+.pass-people-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+.pass-passengers {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.pass-passenger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border-radius: 10px;
+  font-size: 0.88rem;
+}
+
+.pass-phone {
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 8px 2px;
+}
+
 /* —— 行程頁 —— */
 .itinerary-toolbar {
   display: flex;
