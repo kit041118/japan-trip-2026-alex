@@ -540,10 +540,36 @@ button {
   font-size: 0.88rem;
 }
 
+.pass-passenger-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pass-seat {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .pass-phone {
   font-weight: 700;
   white-space: nowrap;
   padding: 8px 2px;
+}
+
+.pass-alert {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: var(--amber-soft);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.pass-alert strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--amber);
 }
 
 /* —— 行程頁 —— */
