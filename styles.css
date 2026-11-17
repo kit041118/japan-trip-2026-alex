@@ -1136,6 +1136,162 @@ button {
   color: var(--ink-faint);
   margin-bottom: 20px;
 }
+.weather-card.is-pending { background: var(--bg); }
+.weather-pending {
+  margin-top: 10px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--ink-muted);
+  line-height: 1.45;
+}
+
+/* —— 我的購物清單 —— */
+.shopping-list-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  padding: 18px 16px 16px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(232, 228, 220, 0.6);
+  margin-bottom: 16px;
+}
+.shopping-list-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.shopping-list-hint {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+}
+.shopping-list-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.shopping-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.shopping-field span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+.shopping-field input {
+  width: 100%;
+  border: 1.5px solid var(--mist);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  outline: none;
+}
+.shopping-field input:focus { border-color: var(--sakura-deep); }
+.shopping-field-name { grid-column: 1 / -1; }
+.shopping-add {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 40px;
+  padding: 8px 18px;
+}
+.shopping-list-empty {
+  color: var(--ink-muted);
+  font-size: 0.86rem;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 14px 12px;
+}
+.shopping-list-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shopping-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 8px 8px 8px 12px;
+}
+.shopping-item-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.shopping-item-main input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--matcha);
+}
+.shopping-item-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 8px;
+  min-width: 0;
+}
+.shopping-item-name {
+  font-weight: 650;
+  word-break: break-word;
+}
+.shopping-item-qty {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sky-deep);
+  background: var(--sky-soft);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.shopping-item-note {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  word-break: break-word;
+}
+.shopping-item.is-done .shopping-item-name {
+  text-decoration: line-through;
+  color: var(--ink-faint);
+}
+.shopping-item.is-done .shopping-item-note,
+.shopping-item.is-done .shopping-item-qty {
+  color: var(--ink-faint);
+}
+.shopping-item-delete {
+  flex-shrink: 0;
+  border: 1.5px solid var(--mist);
+  background: var(--bg-elevated);
+  color: var(--ink-muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+}
+.shopping-item-delete:hover {
+  border-color: var(--sakura-deep);
+  color: var(--sakura-deep);
+}
+@media (min-width: 720px) {
+  .shopping-list-form {
+    grid-template-columns: minmax(0, 2fr) minmax(88px, 0.7fr) minmax(0, 1.3fr) auto;
+    align-items: end;
+  }
+  .shopping-field-name,
+  .shopping-add { grid-column: auto; }
+}
 
 
 /* —— 富士山能見度（總覽） —— */

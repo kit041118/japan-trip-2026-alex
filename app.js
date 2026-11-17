@@ -42,7 +42,8 @@ const CUISINE_ORDER = [
 
 const SHOP_TYPE_ORDER = ["百貨", "Outlet", "戶外", "服飾", "雜貨", "便利店"];
 
-const WEATHER_CACHE_KEY = "japan-trip-weather-v1";
+const WEATHER_CACHE_KEY = "japan-trip-weather-v2";
+const SHOPPING_LIST_KEY = "japan-trip-shopping-list";
 
 const CAT = {
   flight: { icon: "✈️", label: "交通" },
@@ -223,23 +224,115 @@ function weatherEmoji(code) {
   return w;
 }
 
+function tokyoDateKey(date = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+function weatherCodeAt(daily, index) {
+  if (!daily) return null;
+  const codes = daily.weather_code || daily.weathercode;
+  if (!codes || codes[index] == null) return null;
+  return codes[index];
+}
+
+function isDateRangeError(err) {
+  return /out of allowed range|end_date|start_date/i.test(String((err && err.message) || ""));
+}
+
+function parseAllowedRange(err) {
+  const match = String((err && err.message) || "").match(
+    /from (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})/
+  );
+  return match ? { start: match[1], end: match[2] } : null;
+}
+
 async function fetchWeatherJson(url) {
   const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok || data.error) throw new Error(data.reason || ("weather http " + res.status));
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (_) {
+    data = null;
+  }
+  if (!res.ok || !data || data.error) {
+    throw new Error((data && data.reason) || "weather http " + res.status);
+  }
   return data;
+}
+
+function pendingWeatherCard(region) {
+  return { date: region.date, region: region.region, pending: true };
+}
+
+function weatherCardFromDaily(region, data, dateMapFn) {
+  if (!data || !data.daily || !Array.isArray(data.daily.time)) return pendingWeatherCard(region);
+  const lookDate = dateMapFn(region.date);
+  const di = data.daily.time.indexOf(lookDate);
+  if (di < 0) return pendingWeatherCard(region);
+  const code = weatherCodeAt(data.daily, di);
+  const tmax = data.daily.temperature_2m_max && data.daily.temperature_2m_max[di];
+  const tmin = data.daily.temperature_2m_min && data.daily.temperature_2m_min[di];
+  if (code == null || tmax == null || tmin == null) return pendingWeatherCard(region);
+  const [emoji, label] = weatherEmoji(code);
+  return {
+    date: region.date,
+    region: region.region,
+    emoji,
+    label,
+    tmax: Math.round(tmax),
+    tmin: Math.round(tmin),
+    pending: false,
+  };
+}
+
+const WEATHER_DAILY =
+  "daily=weathercode,weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo";
+
+function weatherUrl(base, lat, lon, start, end) {
+  return `${base}?latitude=${lat}&longitude=${lon}&${WEATHER_DAILY}&start_date=${start}&end_date=${end}`;
+}
+
+async function fetchDailyByRegion(regions, urlFor) {
+  const unique = [];
+  const keyToIdx = {};
+  regions.forEach((r) => {
+    const k = `${r.lat},${r.lon}`;
+    if (!(k in keyToIdx)) {
+      keyToIdx[k] = unique.length;
+      unique.push(r);
+    }
+  });
+  const results = await Promise.all(
+    unique.map((r) => fetchWeatherJson(urlFor(r.lat, r.lon)))
+  );
+  return { results, keyToIdx };
+}
+
+function showWeatherOffline(slot) {
+  slot.innerHTML = `<div class="weather-fallback">☁️ 天氣需連網更新<br><span class="weather-fallback-sub">連上網路後重新整理即可顯示</span></div>`;
+}
+
+function rememberWeather(todayKey, cards, mode) {
+  try {
+    sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ day: todayKey, cards, mode }));
+  } catch (_) {}
 }
 
 async function loadWeather() {
   const slot = document.getElementById("weather-slot");
   if (!slot) return;
 
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = tokyoDateKey();
   try {
     const cached = sessionStorage.getItem(WEATHER_CACHE_KEY);
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (parsed.day === todayKey && parsed.cards) {
+      if (parsed.day === todayKey && Array.isArray(parsed.cards) && parsed.cards.length) {
         renderWeatherCards(slot, parsed.cards, parsed.mode || "forecast");
         return;
       }
@@ -249,99 +342,104 @@ async function loadWeather() {
   slot.innerHTML = `<div class="weather-loading">天氣載入中…</div>`;
 
   const regions = TRIP_DATA.weather_regions || [];
-  const unique = [];
-  const keyToIdx = {};
-  regions.forEach((r) => {
-    const k = `${r.lat},${r.lon}`;
-    if (!(k in keyToIdx)) {
-      keyToIdx[k] = unique.length;
-      unique.push({ lat: r.lat, lon: r.lon });
-    }
-  });
+  if (!regions.length) return;
+  const tripStart = regions.reduce((min, r) => (r.date < min ? r.date : min), regions[0].date);
+  const tripEnd = regions.reduce((max, r) => (r.date > max ? r.date : max), regions[0].date);
+  const sample = regions[0];
 
-  const dailyParams = "daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo";
-
-  async function loadFrom(base, start, end, dateMapFn) {
-    const results = await Promise.all(
-      unique.map(({ lat, lon }) =>
-        fetchWeatherJson(
-          `${base}?latitude=${lat}&longitude=${lon}&${dailyParams}&start_date=${start}&end_date=${end}`
-        )
-      )
+  let bounds;
+  try {
+    await fetchWeatherJson(
+      weatherUrl("https://api.open-meteo.com/v1/forecast", sample.lat, sample.lon, tripStart, tripEnd)
     );
-    return regions
-      .map((r) => {
-        const idx = keyToIdx[`${r.lat},${r.lon}`];
-        const data = results[idx];
-        const lookDate = dateMapFn(r.date);
-        const di = data.daily.time.indexOf(lookDate);
-        if (di < 0) return null;
-        const code = data.daily.weathercode[di];
-        const [emoji, label] = weatherEmoji(code);
-        return {
-          date: r.date,
-          region: r.region,
-          emoji,
-          label,
-          tmax: Math.round(data.daily.temperature_2m_max[di]),
-          tmin: Math.round(data.daily.temperature_2m_min[di]),
-        };
-      })
-      .filter(Boolean);
+    bounds = { start: tripStart, end: tripEnd };
+  } catch (err) {
+    if (!isDateRangeError(err)) {
+      showWeatherOffline(slot);
+      return;
+    }
+    const allowed = parseAllowedRange(err);
+    if (!allowed) {
+      renderWeatherCards(slot, regions.map(pendingWeatherCard), "forecast");
+      return;
+    }
+    const start = tripStart > allowed.start ? tripStart : allowed.start;
+    const end = tripEnd < allowed.end ? tripEnd : allowed.end;
+    bounds = start <= end ? { start, end } : null;
+  }
+
+  if (!bounds) {
+    try {
+      const { results, keyToIdx } = await fetchDailyByRegion(regions, (lat, lon) =>
+        weatherUrl(
+          "https://archive-api.open-meteo.com/v1/archive",
+          lat,
+          lon,
+          tripStart.replace("2026-", "2025-"),
+          tripEnd.replace("2026-", "2025-")
+        )
+      );
+      const cards = regions.map((r) =>
+        weatherCardFromDaily(r, results[keyToIdx[`${r.lat},${r.lon}`]], (d) => d.replace("2026-", "2025-"))
+      );
+      if (!cards.some((c) => !c.pending)) throw new Error("empty archive");
+      rememberWeather(todayKey, cards, "archive");
+      renderWeatherCards(slot, cards, "archive");
+    } catch (_) {
+      showWeatherOffline(slot);
+    }
+    return;
   }
 
   try {
-    let cards = null;
-    let mode = "forecast";
-    try {
-      cards = await loadFrom(
-        "https://api.open-meteo.com/v1/forecast",
-        "2026-11-28",
-        "2026-12-05",
-        (d) => d
-      );
-      if (!cards.length) throw new Error("empty forecast");
-    } catch (_) {
-      // 出發前超過約 16 日時，預報尚不可用 → 改用往年同期
-      cards = await loadFrom(
-        "https://archive-api.open-meteo.com/v1/archive",
-        "2025-11-28",
-        "2025-12-05",
-        (d) => d.replace("2026-", "2025-")
-      );
-      mode = "archive";
-      if (!cards.length) throw new Error("empty archive");
-    }
-
-    try {
-      sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({ day: todayKey, cards, mode }));
-    } catch (_) {}
-    renderWeatherCards(slot, cards, mode);
+    const inWindow = regions.filter((r) => r.date >= bounds.start && r.date <= bounds.end);
+    const { results, keyToIdx } = await fetchDailyByRegion(inWindow, (lat, lon) =>
+      weatherUrl("https://api.open-meteo.com/v1/forecast", lat, lon, bounds.start, bounds.end)
+    );
+    const cards = regions.map((r) => {
+      if (r.date < bounds.start || r.date > bounds.end) return pendingWeatherCard(r);
+      return weatherCardFromDaily(r, results[keyToIdx[`${r.lat},${r.lon}`]], (d) => d);
+    });
+    rememberWeather(todayKey, cards, "forecast");
+    renderWeatherCards(slot, cards, "forecast");
   } catch (err) {
-    slot.innerHTML = `<div class="weather-fallback">☁️ 天氣需連網更新<br><span class="weather-fallback-sub">連上網路後重新整理即可顯示</span></div>`;
+    if (isDateRangeError(err)) {
+      renderWeatherCards(slot, regions.map(pendingWeatherCard), "forecast");
+      return;
+    }
+    showWeatherOffline(slot);
   }
 }
 
 function renderWeatherCards(slot, cards, mode) {
   const badge = mode === "archive" ? "往年同期參考" : "預報";
+  const hasPending = cards.some((c) => c.pending);
+  const hasLive = cards.some((c) => !c.pending);
   const note =
     mode === "archive"
       ? "距離出發尚遠，暫顯示 2025 年同期實況作參考；出發前約兩週內會自動改為正式預報。"
-      : "預報會隨時間更新；出發前請再確認一次。";
+      : hasPending && hasLive
+        ? "已公布的日子是即時預報；其餘日子預報尚未公布，可查時會自動補上。"
+        : hasPending
+          ? "這幾日的預報尚未公布，可查時會自動補上。"
+          : "預報會隨時間更新；出發前請再確認一次。";
   slot.innerHTML = `
     <h3 class="section-title">天氣小卡 <span class="badge">${badge}</span></h3>
     <div class="weather-grid">
       ${cards
-        .map(
-          (c) => `
-        <div class="weather-card">
+        .map((c) => {
+          const body = c.pending
+            ? `<div class="weather-pending">預報尚未公布</div>`
+            : `<div class="weather-emoji">${c.emoji}</div>
+          <div class="weather-label">${escapeHtml(c.label)}</div>
+          <div class="weather-temp"><span class="tmax">${c.tmax}°</span><span class="tsep">/</span><span class="tmin">${c.tmin}°</span></div>`;
+          return `
+        <div class="weather-card${c.pending ? " is-pending" : ""}">
           <div class="weather-date">${formatDate(c.date)}</div>
           <div class="weather-region">${escapeHtml(c.region)}</div>
-          <div class="weather-emoji">${c.emoji}</div>
-          <div class="weather-label">${escapeHtml(c.label)}</div>
-          <div class="weather-temp"><span class="tmax">${c.tmax}°</span><span class="tsep">/</span><span class="tmin">${c.tmin}°</span></div>
-        </div>`
-        )
+          ${body}
+        </div>`;
+        })
         .join("")}
     </div>
     <p class="weather-note">${note}</p>
@@ -928,6 +1026,143 @@ function updateSpotMapFilters(viewId) {
   }
 }
 
+function loadShoppingList() {
+  try {
+    const raw = localStorage.getItem(SHOPPING_LIST_KEY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) {
+      localStorage.removeItem(SHOPPING_LIST_KEY);
+      return [];
+    }
+    return data
+      .filter((item) => item && typeof item === "object" && typeof item.name === "string" && item.name.trim())
+      .map((item) => ({
+        id: String(item.id || ""),
+        name: item.name.trim().slice(0, 80),
+        qty: typeof item.qty === "string" ? item.qty.trim().slice(0, 20) : "",
+        note: typeof item.note === "string" ? item.note.trim().slice(0, 120) : "",
+        done: item.done === true,
+        created: Number(item.created) || 0,
+      }))
+      .filter((item) => item.id);
+  } catch (_) {
+    try {
+      localStorage.removeItem(SHOPPING_LIST_KEY);
+    } catch (_) {}
+    return [];
+  }
+}
+
+function saveShoppingList(items) {
+  localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(items));
+}
+
+function sortedShoppingItems(items) {
+  return items.slice().sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.created || 0) - (b.created || 0);
+  });
+}
+
+function shoppingListItemsHtml(items) {
+  const sorted = sortedShoppingItems(items);
+  if (!sorted.length) {
+    return `<p class="shopping-list-empty">還沒有想買的東西。填上品項，加入第一樣。</p>`;
+  }
+  return `<ul class="shopping-list-items">${sorted
+    .map((item) => {
+      const qty = item.qty ? `<span class="shopping-item-qty">${escapeHtml(item.qty)}</span>` : "";
+      const note = item.note ? `<span class="shopping-item-note">${escapeHtml(item.note)}</span>` : "";
+      return `
+      <li class="shopping-item${item.done ? " is-done" : ""}">
+        <label class="shopping-item-main">
+          <input type="checkbox" data-shop-id="${escapeHtml(item.id)}" ${item.done ? "checked" : ""} aria-label="已買：${escapeHtml(item.name)}" />
+          <span class="shopping-item-text">
+            <span class="shopping-item-name">${escapeHtml(item.name)}</span>
+            ${qty}
+            ${note}
+          </span>
+        </label>
+        <button type="button" class="shopping-item-delete" data-delete-id="${escapeHtml(item.id)}">刪除</button>
+      </li>`;
+    })
+    .join("")}</ul>`;
+}
+
+function shoppingListSectionHtml() {
+  return `
+    <section class="shopping-list-card" aria-labelledby="shopping-list-title">
+      <h2 id="shopping-list-title">我的購物清單</h2>
+      <p class="shopping-list-hint">可記下想買的東西，勾選表示已買；清單保存在這個瀏覽器。</p>
+      <form id="shopping-list-form" class="shopping-list-form">
+        <label class="shopping-field shopping-field-name">
+          <span>品項</span>
+          <input name="name" type="text" required maxlength="80" placeholder="例如：藥妝、球鞋" autocomplete="off" enterkeyhint="done" />
+        </label>
+        <label class="shopping-field">
+          <span>數量</span>
+          <input name="qty" type="text" maxlength="20" placeholder="選填" autocomplete="off" />
+        </label>
+        <label class="shopping-field">
+          <span>備註</span>
+          <input name="note" type="text" maxlength="120" placeholder="選填" autocomplete="off" />
+        </label>
+        <button type="submit" class="btn btn-place shopping-add">新增</button>
+      </form>
+      <div id="shopping-list-body">${shoppingListItemsHtml(loadShoppingList())}</div>
+    </section>`;
+}
+
+function renderShoppingListBody(root) {
+  const body = root.querySelector("#shopping-list-body");
+  if (body) body.innerHTML = shoppingListItemsHtml(loadShoppingList());
+}
+
+function bindShoppingList(root) {
+  const form = root.querySelector("#shopping-list-form");
+  const body = root.querySelector("#shopping-list-body");
+  if (!form || !body || form.dataset.bound === "1") return;
+  form.dataset.bound = "1";
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = form.elements.name.value.trim();
+    if (!name) {
+      form.elements.name.focus();
+      return;
+    }
+    const items = loadShoppingList();
+    items.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: name.slice(0, 80),
+      qty: form.elements.qty.value.trim().slice(0, 20),
+      note: form.elements.note.value.trim().slice(0, 120),
+      done: false,
+      created: Date.now(),
+    });
+    saveShoppingList(items);
+    form.reset();
+    form.elements.name.focus();
+    renderShoppingListBody(root);
+  });
+  body.addEventListener("change", (e) => {
+    const box = e.target.closest("input[type=checkbox][data-shop-id]");
+    if (!box) return;
+    const items = loadShoppingList();
+    const item = items.find((entry) => entry.id === box.dataset.shopId);
+    if (!item) return;
+    item.done = box.checked;
+    saveShoppingList(items);
+    renderShoppingListBody(root);
+  });
+  body.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-delete-id]");
+    if (!btn) return;
+    saveShoppingList(loadShoppingList().filter((entry) => entry.id !== btn.dataset.deleteId));
+    renderShoppingListBody(root);
+  });
+}
+
 function renderSpotList(viewId, listKey, cardClass, heroTitle, defaultBadge) {
   const el = document.getElementById(viewId);
   if (!el) return;
@@ -978,7 +1213,9 @@ function renderSpotList(viewId, listKey, cardClass, heroTitle, defaultBadge) {
 
   const mapLabel =
     listKey === "beauty" ? "美容店舖地圖" : listKey === "restaurants" ? "餐廳地圖" : "購物地圖";
+  const listHead = listKey === "shopping" ? shoppingListSectionHtml() : "";
   el.innerHTML = `
+    ${listHead}
     <div class="hero-card" style="margin-bottom:16px">
       <h2>${heroTitle}</h2>
       <p class="hero-sub">${subtitle}</p>
@@ -997,6 +1234,7 @@ function renderSpotList(viewId, listKey, cardClass, heroTitle, defaultBadge) {
 
   bindSpotFilterRow(el, viewId, ".region-filter:not(.type-filter)", "regionFilter");
   bindSpotFilterRow(el, viewId, ".type-filter", "typeFilter");
+  if (listKey === "shopping") bindShoppingList(el);
   initSpotMap(viewId, listKey, spots);
 }
 
